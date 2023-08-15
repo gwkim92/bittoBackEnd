@@ -36,7 +36,7 @@ app.use((error, req, res, next) => {
 
 app.use("/users", require("./routes/users"));
 
-app.use("/walletService", require("./walletService/walletService"));
+app.use("/walletService", require("./walletService/ethWalletService"));
 
 app.listen(port, () => {
   console.log(`${port} port connect success!!`);
