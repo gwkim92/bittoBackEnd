@@ -3,10 +3,9 @@ const path = require('path');
 const app = express();
 const cors = require('cors');
 const port = 4000;
-const mongoose = require('mongoose');
-const redis = require('redis');
 const dotenv = require('dotenv');
 const { Web3 } = require('web3');
+const model = require('./models/index');
 
 const web3ProviderUrl = process.env.WEB3_PROVIDER_URL;
 const web3 = new Web3(web3ProviderUrl);
@@ -16,24 +15,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../uploads')));
 app.use(express.json());
 
-const redisClient = redis.createClient({ legacyMode: true });
-redisClient
-	.connect(process.env.REDIS_HOST)
-	.then(() => {
-		console.log('Redis Connect Success!!');
-	})
-	.catch((err) => {
-		console.log('Redis error : ' + err);
-	});
-
-mongoose
-	.connect(process.env.MONGO_URI)
-	.then(() => {
-		console.log('DB Connect Success!!');
-	})
-	.catch((err) => {
-		console.log(err);
-	});
+model.NewRepositories;
 
 app.post('/', (req, res) => {
 	console.log(req.body);
@@ -49,8 +31,11 @@ app.use('/users', require('./routes/users'));
 
 app.use('/walletService', require('./walletService/ethWalletService'));
 
+// TODO server connect 순서 수정
 app.listen(port, () => {
 	console.log(`${port} port connect success!!`);
 });
+
+// TODO health check 추가
 
 module.exports = { web3 };
