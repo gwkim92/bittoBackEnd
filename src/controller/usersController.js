@@ -34,11 +34,16 @@ module.exports = {
 
 		register: async (req, res, next) => {
 			try {
-				// console.log("1", req.body);
-				const user = User(req.body);
-				await user.save();
+				await sequelize.authenticate();
+				console.log('connection to database');
+				// TODO request data 유효성 체크 추가
+
+				await sequelize.sync();
+				const user = await userDB.createUserInfo(req.body);
+				// TODO response success code 상수로 수정 및 정리
 				return res.sendStatus(200);
 			} catch (error) {
+				// TODO response error code 상수로 수정 및 정리
 				next(error);
 			}
 		},
