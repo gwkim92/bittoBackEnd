@@ -51,7 +51,7 @@ db.Sequelize = Sequelize;
 sequelize
 	.sync({ force: false })
 	.then(() => {
-		console.log('database connect');
+		console.log('Mysql Database Connect Success!!');
 	})
 	.catch((err) => {
 		console.error(err);
