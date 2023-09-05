@@ -83,7 +83,6 @@ module.exports = {
 				);
 				return res.json({ user, accessToken });
 
-				// TODO payload mongo -> mysql
 				// TODO accessToken 후 response 추가
 			} catch (err) {
 				next(err);
