@@ -24,7 +24,12 @@ const createSequelizeInstance = (dbConfig) => {
 			dbConfig.database,
 			dbConfig.username,
 			dbConfig.password,
-			dbConfig
+			{
+				host: dbConfig.host,
+				port: dbConfig.port,
+				dialect: dbConfig.dialect,
+				operatorsAliases: false,
+			}
 		);
 	}
 };
