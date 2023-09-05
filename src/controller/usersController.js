@@ -34,8 +34,6 @@ module.exports = {
 			try {
 				// TODO request data 유효성 체크 추가
 
-				await sequelize.sync();
-
 				const user = await userDB.createUserInfo(req.body);
 				// TODO response success code 상수로 수정 및 정리
 				if (user === undefined || user === null) {

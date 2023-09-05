@@ -1,6 +1,7 @@
 const db = require('../../models');
 const user = db.account_infos;
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4, v5: uuidv5 } = require('uuid');
 
 async function getUserInfo() {
 	try {
@@ -15,9 +16,12 @@ async function getUserInfo() {
 async function createUserInfo(data) {
 	const salt = await bcrypt.genSalt(10);
 	const passwordHash = await bcrypt.hash(data.password, salt);
+	const randomUuid = uuidv4();
+	const uuid = uuidv5(data.email, randomUuid);
 
 	try {
 		const userInfo = await user.create({
+			uuid: uuid,
 			name: data.name,
 			email: data.email,
 			password: passwordHash,
