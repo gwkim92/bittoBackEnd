@@ -52,7 +52,7 @@ async function getUserInfoByEmail(email) {
 	try {
 		const userInfo = await user.findOne({ where: { email: email } });
 		//TODO log 수정
-		console.log('user : ', userInfo);
+		// console.log('user : ', userInfo);
 		if (userInfo === null) {
 			return null;
 		} else {

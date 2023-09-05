@@ -61,43 +61,33 @@ module.exports = {
 					req.body.password,
 					user.password
 				);
+				if (!isMatch) {
+					return res.status(400).sned('Wrong Password');
+				}
+
+				const payload = {
+					userId: user.uuid,
+				};
+
+				const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
+					expiresIn: '1h',
+				});
+
+				console.log(
+					'payload : ',
+					payload,
+					'user : ',
+					user,
+					'accessToken: ',
+					accessToken
+				);
+				return res.json({ user, accessToken });
 
 				// TODO payload mongo -> mysql
 				// TODO accessToken 후 response 추가
-			} catch (err) {}
-
-			//=========
-			// try {
-			// 	//존재하는 유저인지 확인
-			// 	const user = await User.findOne({ email: req.body.email });
-			// 	if (!user) {
-			// 		return res.status(400).send('Auth failed, email not found');
-			// 	}
-			// 	//비밀번호 체크
-			// 	console.log('test');
-			// 	const isMatch = await user.comparePassword(req.body.password);
-			// 	if (!isMatch) {
-			// 		return res.status(400).send('Wrong Password');
-			// 	}
-			// 	const payload = {
-			// 		userId: user._id.toHexString(),
-			// 	};
-			// 	//token 생성
-			// 	const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
-			// 		expiresIn: '1h',
-			// 	});
-			// 	console.log(
-			// 		'payload : ',
-			// 		payload,
-			// 		'user : ',
-			// 		user,
-			// 		'accessToken: ',
-			// 		accessToken
-			// 	);
-			// 	return res.json({ user, accessToken });
-			// } catch (error) {
-			// 	next(error);
-			// }
+			} catch (err) {
+				next(err);
+			}
 		},
 
 		logout: async (req, res, next) => {
