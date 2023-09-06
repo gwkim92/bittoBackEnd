@@ -32,7 +32,7 @@ async function createUserInfo(data) {
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		});
-		// TODO DB insert success log 수정
+		// TODO DB insert success log 수정 -> 컨트롤러로 수정
 		console.log(
 			'create user info sucess ::',
 			'createUserInfo',
@@ -65,6 +65,19 @@ async function getUserInfoByEmail(email) {
 	}
 }
 
+async function getUserInfoByUuid(uuid) {
+	try {
+		const userInfo = await user.findOne({ where: { uuid: uuid } });
+		if (userInfo === null) {
+			return null;
+		} else {
+			return userInfo;
+		}
+	} catch (err) {
+		return err;
+	}
+}
+
 async function comparePassWord(reqPassword, userPassword) {
 	const match = bcrypt.compare(reqPassword, userPassword);
 	return match;
@@ -91,5 +104,6 @@ module.exports = {
 	getUserInfo,
 	createUserInfo,
 	getUserInfoByEmail,
+	getUserInfoByUuid,
 	comparePassWord,
 };
