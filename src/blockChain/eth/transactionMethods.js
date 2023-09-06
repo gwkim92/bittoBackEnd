@@ -16,24 +16,24 @@ const minterPrivateKey = contracts.minterPrivateKey;
 //   mint: async (req, res) => {},
 // };
 async function sendMintTransaction(to, amount) {
-  const data = erc20v2Contract.methods.mint(to, amount).encodeABI();
-
-  const txObject = await createEIP1559Tx(
-    minterAddress,
-    proxyAddress,
-    "0",
-    data
-  );
-
+  console.log("minter Address : ", minterAddress);
+  const toWeiAmount = web3.utils.toWei(amount, "gwei");
+  console.log("toWei : ", toWeiAmount);
+  const data = erc20v2Contract.methods.mint(to, toWeiAmount).encodeABI();
+  console.log("data : ", data);
+  const txObject = await createEIP1559Tx(minterAddress, proxyAddress, 0, data);
+  console.log("txObject : ", txObject);
+  console.log("private : ", minterPrivateKey);
   const signedTxObject = await web3.eth.accounts.signTransaction(
     txObject,
     minterPrivateKey
   );
-
+  console.log("signedTxObject : ", signedTxObject);
   try {
     const receipt = await web3.eth.sendSignedTransaction(
       signedTxObject.rawTransaction
     );
+    console.log("receipt : ", receipt);
     return receipt;
   } catch (error) {
     console.error(`Failed to send mint transaction: ${error}`);
@@ -43,15 +43,19 @@ async function sendMintTransaction(to, amount) {
 // Test the function
 (async () => {
   try {
-    const toAddress = minterAddress;
-    const amountToMint = web3.utils.toWei("10", "ether"); // Replace with the desired mint amount in Wei
+    const toAddress = adminAddress;
+    const amountToMint = 1; // Replace with the desired mint amount in Wei
 
     const receipt = await sendMintTransaction(toAddress, amountToMint);
 
-    console.log(
-      "Mint transaction successful. Transaction hash:",
-      receipt.transactionHash
-    );
+    if (receipt && receipt.transactionHash) {
+      console.log(
+        "Mint transaction successful. Transaction hash:",
+        receipt.transactionHash
+      );
+    } else {
+      console.error("Failed to get transaction receipt:", receipt);
+    }
   } catch (error) {
     console.error(`Failed to mint tokens: ${error}`);
   }

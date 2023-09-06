@@ -3,26 +3,29 @@
 //checkNonce, gasEstimate, 1559, etc..
 require("dotenv").config();
 const { web3 } = require("../connection");
+
 async function getBaseFeePerGas() {
   const latestBlock = await web3.eth.getBlock("latest");
+  console.log(latestBlock.baseFeePerGas);
   return latestBlock.baseFeePerGas;
 }
 
 async function getNonce(address) {
-  return await web3.eth.getTransactionCount(address, "pending");
+  return await web3.eth.getTransactionCount(address, "latest");
+}
+
+function encodeFunctionCall(contractInstance, methodName, args) {
+  return contractInstance.methods[methodName](...args).encodeABI();
 }
 
 // Create a transaction object
 async function createTransaction(from, to, value, data) {
   const Nonce = await getNonce(from);
   return {
-    from: from,
-    nonce: Nonce,
-    gasPrice: null,
-    gasLimit: null,
     to: to,
-    value: web3.utils.toHex(web3.utils.toWei(value.toString(), "ether")),
-    data: web3.utils.toHex(data),
+    // value: web3.utils.toHex(web3.utils.toWei(value.toString(), "ether")),
+    value: value === "0" ? "0x0" : web3.utils.toWei(value.toString(), "ether"),
+    data: data,
   };
 }
 
@@ -41,22 +44,31 @@ async function createEIP1559Tx(from, to, value, data) {
   const Nonce = await getNonce(from);
   const tx = createTransaction(from, to, value, data);
   const gasLimit = await estimateGas(tx);
+  console.log("gasLimit : ", gasLimit);
   return {
     to: to,
     gasLimit: gasLimit,
-    chainId: "0x1", // Ethereum Mainnet
+    chainId: "11155111", // Ethereum Mainnet
     nonce: Nonce,
-    maxPriorityFeePerGas: "0x9502F9000", //1 Gwei
-    maxFeePergas: web3.utils.toHex(
-      baseFeePerGas + web3.utils.toWei("2", "gwei")
-    ),
-    value: web3.utils.toHex(web3.utils.toWei(value.toString(), "ether")),
-    data: web3.utils.toHex(data),
-    accessList: [],
-    type: "0x02",
+    maxPriorityFeePerGas: web3.utils.toWei("1", "gwei"), //1 Gwei
+    maxFeePerGas: baseFeePerGas + web3.utils.toWei("2", "gwei"),
+    value: value === "0" ? "0x0" : web3.utils.toWei(value, "ether"),
+    data: data,
+    type: "0x2",
   };
+}
+
+async function sendTransaction(txObject, privateKey) {
+  const signedTxObject = await web3.eth.accounts.signTransaction(
+    txObject,
+    privateKey
+  );
+
+  return await web3.eth.sendSignedTransaction(signedTxObject.rawTransaction);
 }
 
 module.exports = {
   createEIP1559Tx,
+  encodeFunctionCall,
+  sendTransaction,
 };
