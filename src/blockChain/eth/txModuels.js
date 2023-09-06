@@ -3,18 +3,13 @@
 //checkNonce, gasEstimate, 1559, etc..
 require("dotenv").config();
 const { web3 } = require("../connection");
-
-async function getBaseFeePerGas() {
-  const latestBlock = await web3.eth.getBlock("latest");
-  console.log(latestBlock.baseFeePerGas);
-  return latestBlock.baseFeePerGas;
-}
+const { calculateFees } = require("./gasFeeCalculate");
 
 async function getNonce(address) {
   return await web3.eth.getTransactionCount(address, "latest");
 }
 
-function encodeFunctionCall(contractInstance, methodName, args) {
+async function encodeFunctionCall(contractInstance, methodName, args) {
   return contractInstance.methods[methodName](...args).encodeABI();
 }
 
@@ -40,7 +35,7 @@ async function estimateGas(tx) {
 
 // Create an EIP-1559 transaction object
 async function createEIP1559Tx(from, to, value, data) {
-  const baseFeePerGas = await getBaseFeePerGas();
+  const gasFee = await calculateFees();
   const Nonce = await getNonce(from);
   const tx = createTransaction(from, to, value, data);
   const gasLimit = await estimateGas(tx);
@@ -48,27 +43,28 @@ async function createEIP1559Tx(from, to, value, data) {
   return {
     to: to,
     gasLimit: gasLimit,
-    chainId: "11155111", // Ethereum Mainnet
+    chainId: "11155111",
     nonce: Nonce,
-    maxPriorityFeePerGas: web3.utils.toWei("1", "gwei"), //1 Gwei
-    maxFeePerGas: baseFeePerGas + web3.utils.toWei("2", "gwei"),
+    maxPriorityFeePerGas: gasFee.maxPriorityFee, //1 Gwei
+    maxFeePerGas: gasFee.maxFeePerGas,
     value: value === "0" ? "0x0" : web3.utils.toWei(value, "ether"),
     data: data,
     type: "0x2",
   };
 }
 
-async function sendTransaction(txObject, privateKey) {
-  const signedTxObject = await web3.eth.accounts.signTransaction(
-    txObject,
-    privateKey
-  );
+async function signTransaction(txObject, privateKey) {
+  return await web3.eth.accounts.signTransaction(txObject, privateKey);
+}
 
+////////////////////////proxy//////////////////////
+async function sendSignedTransaction(signedTxObject) {
   return await web3.eth.sendSignedTransaction(signedTxObject.rawTransaction);
 }
 
 module.exports = {
   createEIP1559Tx,
   encodeFunctionCall,
-  sendTransaction,
+  signTransaction,
+  sendSignedTransaction,
 };
