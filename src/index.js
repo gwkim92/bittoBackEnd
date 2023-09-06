@@ -4,11 +4,11 @@ const app = express();
 const cors = require("cors");
 const port = 4000;
 const dotenv = require("dotenv");
-const { Web3 } = require("web3");
+// const { Web3 } = require("web3");
 const model = require("./models/index");
 
-const web3ProviderUrl = process.env.WEB3_PROVIDER_URL;
-const web3 = new Web3(web3ProviderUrl);
+// const web3ProviderUrl = process.env.WEB3_PROVIDER_URL;
+// const web3 = new Web3(web3ProviderUrl);
 dotenv.config();
 
 app.use(cors());
@@ -38,4 +38,4 @@ app.listen(port, () => {
 
 // TODO health check 추가
 
-module.exports = { web3 };
+// module.exports = { web3 };
