@@ -8,36 +8,49 @@ const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.js')[env];
 const db = {};
-db.account_infos = require('./tb_account_info');
 
-let sequelize;
-if (config.use_env_variable) {
-	sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-	sequelize = new Sequelize(
-		config.database,
-		config.username,
-		config.password,
-		config
+const accountDB = {};
+accountDB.account_infos = require('./tb_account_info');
+
+const contractDB = {};
+contractDB.address_infos = require('./address_info');
+contractDB.contract_infos = require('./contract_info');
+
+const createSequelizeInstance = (dbConfig) => {
+	if (dbConfig.use_env_variable) {
+		return new Sequelize(process.env[config.use_env_variable], dbConfig);
+	} else {
+		return new Sequelize(
+			dbConfig.database,
+			dbConfig.username,
+			dbConfig.password,
+			{
+				host: dbConfig.host,
+				port: dbConfig.port,
+				dialect: dbConfig.dialect,
+				operatorsAliases: false,
+			}
+		);
+	}
+};
+
+const sequelizeAccountDB = createSequelizeInstance(config.databases.accountDB);
+const sequelizeContractDB = createSequelizeInstance(
+	config.databases.contractDB
+);
+
+Object.keys(accountDB).forEach((modelName) => {
+	const model = accountDB[modelName](sequelizeAccountDB, Sequelize.DataTypes);
+	db[modelName] = model;
+});
+
+Object.keys(contractDB).forEach((modelName) => {
+	const model = contractDB[modelName](
+		sequelizeContractDB,
+		Sequelize.DataTypes
 	);
-}
-
-fs.readdirSync(__dirname)
-	.filter((file) => {
-		return (
-			file.indexOf('.') !== 0 &&
-			file !== basename &&
-			file.slice(-3) === '.js' &&
-			file.indexOf('.test.js') === -1
-		);
-	})
-	.forEach((file) => {
-		const model = require(path.join(__dirname, file))(
-			sequelize,
-			Sequelize.DataTypes
-		);
-		db[model.name] = model;
-	});
+	db[modelName] = model;
+});
 
 Object.keys(db).forEach((modelName) => {
 	if (db[modelName].associate) {
@@ -45,16 +58,27 @@ Object.keys(db).forEach((modelName) => {
 	}
 });
 
-db.sequelize = sequelize;
+db.sequelizeAccountDB = sequelizeAccountDB;
+db.sequelizeContractDB = sequelizeContractDB;
 db.Sequelize = Sequelize;
 
-sequelize
+sequelizeAccountDB
 	.sync({ force: false })
 	.then(() => {
-		console.log('Mysql Database Connect Success!!');
+		console.log('AccountDB: Mysql Database Connect Success!!');
 	})
 	.catch((err) => {
-		console.error(err);
+		console.error('AccountDB: ', err);
+		return;
+	});
+
+sequelizeContractDB
+	.sync({ force: false })
+	.then(() => {
+		console.log('ContractDB: Mysql Database Connect Success!!');
+	})
+	.catch((err) => {
+		console.error('ContractDB: ', err);
 		return;
 	});
 
