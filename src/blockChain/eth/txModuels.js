@@ -9,10 +9,6 @@ async function getNonce(address) {
   return await web3.eth.getTransactionCount(address, "latest");
 }
 
-async function encodeFunctionCall(contractInstance, methodName, args) {
-  return contractInstance.methods[methodName](...args).encodeABI();
-}
-
 // Create a transaction object
 async function createTransaction(from, to, value, data) {
   const Nonce = await getNonce(from);
@@ -64,7 +60,6 @@ async function sendSignedTransaction(signedTxObject) {
 
 module.exports = {
   createEIP1559Tx,
-  encodeFunctionCall,
   signTransaction,
   sendSignedTransaction,
 };
