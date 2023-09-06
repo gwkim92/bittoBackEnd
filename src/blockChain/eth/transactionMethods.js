@@ -45,13 +45,8 @@ async function sendMintTransaction(to, amount) {
 
 async function sendMintTransactionTest(to, amount) {
   const toWeiAmount = web3.utils.toWei(amount, "gwei");
-
-  // const data = encodeFunctionCall(erc20v2Contract, "mint", [to, toWeiAmount]);
   const data = erc20v2Contract.methods.mint(to, toWeiAmount).encodeABI();
-  console.log(data);
   const txObject = await createEIP1559Tx(minterAddress, proxyAddress, 0, data);
-  console.log(txObject);
-
   const signedTxObject = await signTransaction(txObject, minterPrivateKey);
 
   try {
