@@ -34,8 +34,6 @@ module.exports = {
 			try {
 				// TODO request data 유효성 체크 추가
 
-				await sequelize.sync();
-
 				const user = await userDB.createUserInfo(req.body);
 				// TODO response success code 상수로 수정 및 정리
 				if (user === undefined || user === null) {
@@ -63,43 +61,32 @@ module.exports = {
 					req.body.password,
 					user.password
 				);
+				if (!isMatch) {
+					return res.status(400).sned('Wrong Password');
+				}
 
-				// TODO payload mongo -> mysql
+				const payload = {
+					userId: user.uuid,
+				};
+
+				const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
+					expiresIn: '1h',
+				});
+
+				console.log(
+					'payload : ',
+					payload,
+					'user : ',
+					user,
+					'accessToken: ',
+					accessToken
+				);
+				return res.json({ user, accessToken });
+
 				// TODO accessToken 후 response 추가
-			} catch (err) {}
-
-			//=========
-			// try {
-			// 	//존재하는 유저인지 확인
-			// 	const user = await User.findOne({ email: req.body.email });
-			// 	if (!user) {
-			// 		return res.status(400).send('Auth failed, email not found');
-			// 	}
-			// 	//비밀번호 체크
-			// 	console.log('test');
-			// 	const isMatch = await user.comparePassword(req.body.password);
-			// 	if (!isMatch) {
-			// 		return res.status(400).send('Wrong Password');
-			// 	}
-			// 	const payload = {
-			// 		userId: user._id.toHexString(),
-			// 	};
-			// 	//token 생성
-			// 	const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
-			// 		expiresIn: '1h',
-			// 	});
-			// 	console.log(
-			// 		'payload : ',
-			// 		payload,
-			// 		'user : ',
-			// 		user,
-			// 		'accessToken: ',
-			// 		accessToken
-			// 	);
-			// 	return res.json({ user, accessToken });
-			// } catch (error) {
-			// 	next(error);
-			// }
+			} catch (err) {
+				next(err);
+			}
 		},
 
 		logout: async (req, res, next) => {
