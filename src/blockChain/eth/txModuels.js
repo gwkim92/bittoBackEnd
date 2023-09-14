@@ -10,11 +10,9 @@ async function getNonce(address) {
 }
 
 // Create a transaction object
-async function createTransaction(from, to, value, data) {
-  const Nonce = await getNonce(from);
+async function createTransaction(to, value, data) {
   return {
     to: to,
-    // value: web3.utils.toHex(web3.utils.toWei(value.toString(), "ether")),
     value: value === "0" ? "0x0" : web3.utils.toWei(value.toString(), "ether"),
     data: data,
   };
@@ -33,7 +31,9 @@ async function estimateGas(tx) {
 async function createEIP1559Tx(from, to, value, data) {
   const gasFee = await calculateFees();
   const Nonce = await getNonce(from);
-  const tx = createTransaction(from, to, value, data);
+  console.log(Nonce);
+  const tx = createTransaction(to, value, data);
+  console.log("createTransaction :", tx);
   const gasLimit = await estimateGas(tx);
   console.log("gasLimit : ", gasLimit);
   return {
@@ -41,8 +41,8 @@ async function createEIP1559Tx(from, to, value, data) {
     gasLimit: gasLimit,
     chainId: "11155111",
     nonce: Nonce,
-    maxPriorityFeePerGas: gasFee.maxPriorityFee, //1 Gwei
-    maxFeePerGas: gasFee.maxFeePerGas,
+    maxPriorityFeePerGas: gasFee.medianPriorityFeePerGas,
+    maxFeePerGas: gasFee.medianFeePerGas,
     value: value === "0" ? "0x0" : web3.utils.toWei(value, "ether"),
     data: data,
     type: "0x2",

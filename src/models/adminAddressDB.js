@@ -1,4 +1,4 @@
-const db = require("../models");
+const db = require("../../models");
 const contract = db.address_infos;
 
 async function saveAddressInfo(chain, name, address) {

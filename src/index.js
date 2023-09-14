@@ -4,11 +4,9 @@ const app = express();
 const cors = require("cors");
 const port = 4000;
 const dotenv = require("dotenv");
-// const { Web3 } = require("web3");
+
 const model = require("./models/index");
 
-// const web3ProviderUrl = process.env.WEB3_PROVIDER_URL;
-// const web3 = new Web3(web3ProviderUrl);
 dotenv.config();
 
 app.use(cors());
@@ -28,7 +26,7 @@ app.use((error, req, res, next) => {
 });
 
 app.use("/users", require("./routes/users"));
-
+app.use("/transactions", require("./routes/eth/transactions"));
 app.use("/walletService", require("./walletService/ethWalletService"));
 
 // TODO server connect 순서 수정
