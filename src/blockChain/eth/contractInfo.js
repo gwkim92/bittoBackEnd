@@ -4,53 +4,77 @@ dotenv.config();
 const { web3 } = require("../connection");
 
 // //dataBase connection....
-// const contractDB = require("../../controller/contractController");
-// const addressDB = require("../../controller/contractController");
+const contractDB = require("../../controller/contractController");
+const addressDB = require("../../controller/addressController");
+const ERC20V2Artifact = require("./artifacts/ERC20ImplV2.json");
 
-///database Connection
-// const Minter = await addressDB.addresss.getAddressInfo("minter");
-// //Minter.address
-// const Erc20V1 = await contractDB.contracts.getContractInfo("Erc20V1");
-// //proxy.address
-// const proxy = await contractDB.contracts.getContractInfo("proxy");
-// //proxy.address
-// const Erc20V2 = await contractDB.contracts.getContractInfo("Erc20V2");
-// //Erc20V2.abi
+async function getData() {
+  //database Connection
+  const Admin = await addressDB.addresss.getAddressInfo("admin");
+  const Minter = await addressDB.addresss.getAddressInfo("minter");
+  //Minter.address
+  //proxy.address
+  const proxy = await contractDB.contracts.getContractInfo("Erc20Proxy");
+  //proxy.address
+  const Erc20V2 = await contractDB.contracts.getContractInfo("Erc20V2");
+  //Erc20V2.abi
+  const AdminAddress = Admin.dataValues.address;
+  const minterAddress = Minter.dataValues.address;
+  const proxyAddress = proxy.dataValues.address;
+  const ercV2Address = Erc20V2.dataValues.address;
+  const proxyAbi = proxy.dataValues.abi;
+  const ercV2Abi = Erc20V2.dataValues.abi;
+
+  console.log(
+    "revert data Test : ",
+    AdminAddress,
+    minterAddress,
+    proxyAddress,
+    ercV2Address
+  );
+  // console.log(proxyAbi);
+  const parse3proxyABI = JSON.parse(JSON.parse(JSON.parse(proxyAbi)));
+  const parse2erc2Ov2ABI = JSON.parse(JSON.parse(ercV2Abi));
+  const proxyABIstringfy = JSON.stringify(parse3proxyABI);
+  const erc20V2Abistringfy = JSON.stringify(parse2erc2Ov2ABI);
+  // const erc2Ov2ABI = JSON.stringify(ERC20V2Artifact.abi);
+  console.log("call database erc20V2 Abi : ", erc20V2Abistringfy);
+
+  //test
+
+  return {
+    AdminAddress,
+    minterAddress,
+    proxyAddress,
+    ercV2Address,
+    proxyAbi,
+    ercV2Abi,
+    proxyABIstringfy,
+    erc20V2Abistringfy,
+    // erc2Ov2ABI,
+  };
+}
 
 //not database ...
 const adminPrivateKey = process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY;
 const minterPrivateKey = process.env.SEPOLIA_MINTER_PRIVATE_KEY;
-const ERC20V1Artifact = require("./artifacts/ERC20Impl.json");
-const ERC20V2Artifact = require("./artifacts/ERC20ImplV2.json");
-const proxyArtifact = require("./artifacts/ERC20Proxy.json");
-const V1_Proxy_Address = require("./artifacts/deployedAddresses.json");
-const v2Address = require("./artifacts/deployedAddressesV2.json");
-
-const erc2Ov1ABI = JSON.stringify(ERC20V1Artifact.abi);
-const erc2Ov2ABI = JSON.stringify(ERC20V2Artifact.abi);
-const proxyABI = JSON.stringify(proxyArtifact.abi);
-const V1Address = V1_Proxy_Address.erc2Ov1;
-const V2Address = v2Address.erc2Ov2;
-const proxyAddress = V1_Proxy_Address.proxy;
-//계정
-const adminAddress = V1_Proxy_Address.admin;
-const minterAddress = V1_Proxy_Address.minter;
 
 function getContractInstance(abi, address) {
   return new web3.eth.Contract(JSON.parse(abi), address);
 }
-// // database 연결 되면 수정 필요
-// const erc20V1Contract = new web3.eth.Contract(erc2Ov1ABI, V1Address);
-// const erc20V2Contract = new web3.eth.Contract(erc2Ov2ABI, V2Address);
-// const proxyContract = new web3.eth.Contract(proxyABI, proxyAddress);
 
-module.exports = {
-  erc20v1: getContractInstance(erc2Ov1ABI, V1Address),
-  erc20v2: getContractInstance(erc2Ov2ABI, V2Address), // You need to define these variables if you're going to use this.
-  proxy: getContractInstance(proxyABI, proxyAddress),
-  proxyAddress,
-  adminAddress,
-  minterAddress,
-  adminPrivateKey,
-  minterPrivateKey,
-};
+async function getContractData() {
+  const data = await getData();
+  return {
+    // erc20v2: getContractInstance(data.erc20V2Abistringfy, data.ercV2Address),
+    erc20v2: getContractInstance(data.erc20V2Abistringfy, data.ercV2Address),
+    proxy: getContractInstance(data.proxyABIstringfy, data.proxyAddress),
+    proxyAddress: data.proxyAddress,
+    adminAddress: data.AdminAddress,
+    minterAddress: data.minterAddress,
+    adminPrivateKey,
+    minterPrivateKey,
+  };
+}
+
+module.exports = { getContractData };

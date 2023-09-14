@@ -30,8 +30,8 @@ function removeOutliers(data) {
   let iqr = q3 - q1;
 
   // Define lower bound and upper bound for outliers
-  let lowerBound = q1 - 1.5 * iqr;
-  let upperBound = q3 + 1.5 * iqr;
+  let lowerBound = q1 - iqr * 0.5; // change from 'q1 - (iqr * 1.5)' to 'q1 - (iqr * .5)'
+  let upperBound = q3 + iqr * 0.5; // change from 'q3 + (iqr * .5)' to 'q3 + (iqr * .5)'
 
   // Filter out values that are below the lower bound or above the upper bound
   return data.filter((x) => x >= lowerBound && x <= upperBound);
@@ -49,6 +49,35 @@ function clusterData(data) {
   console.log(clustersResult); // Add this line
 
   return clustersResult.centroids.map((centroid) => centroid[0]);
+}
+
+function calculateFeeValues(clusteredFees) {
+  let minFee = Math.min(...clusteredFees).toFixed(9);
+  let medianValue = stats.median(clusteredFees).toFixed(9);
+  let maxValue = Math.max(...clusteredFees).toFixed(9);
+  // let minFee = Math.min(...clusteredFees);
+  // let medianValue = stats.median(clusteredFees);
+  // let maxValue = Math.max(...clusteredFees);
+
+  console.log("test : ", minFee, medianValue, maxValue);
+
+  // if (
+  //   minFee === "0.000000" &&
+  //   medianValue === "0.000000" &&
+  //   maxValue === "0.000000"
+  // ) {
+  //   return {
+  //     min: "0",
+  //     median: "0",
+  //     max: "0",
+  //   };
+  // }
+
+  return {
+    min: web3.utils.toWei(minFee, "gwei"),
+    median: web3.utils.toWei(medianValue, "gwei"),
+    max: web3.utils.toWei(maxValue, "gwei"),
+  };
 }
 
 async function calculateFees() {
@@ -71,75 +100,36 @@ async function calculateFees() {
     let filteredMaxFees = removeOutliers(maxFees);
     let filteredPriorityFees = removeOutliers(priorityFees);
 
-    // Perform clustering with fixed number of clusters (3)
-    let optimalMaxValuesClusters = clusterData(filteredMaxFees, 3);
-    let optimalPriorityValuesClusters = clusterData(filteredPriorityFees, 3);
+    var optimalMaxValuesClusters = clusterData(filteredMaxFees, 3);
 
-    let minMaxValue = Math.min(...optimalMaxValuesClusters);
-    minMaxValue = minMaxValue < 1 ? "3" : minMaxValue.toFixed(2);
-
-    let medianMaxValue = stats.median(optimalMaxValuesClusters);
-    medianMaxValue = medianMaxValue < 1 ? "3" : medianMaxValue.toFixed(2);
-
-    let maxMavalue = Math.max(...optimalMaxValuesClusters);
-    maxMavalue = maxMavalue < 1 ? "3" : maxMavalue.toFixed(2);
-
-    // Repeat similar calculations for priority fees.
-    let minPriorityValue = Math.min(...optimalPriorityValuesClusters);
-    minPriorityValue =
-      minPriorityValue < 1.5 ? "1.5" : minPriorityValue.toFixed(2);
-
-    let medianPriorityValue = stats.median(optimalPriorityValuesClusters);
-    medianPriorityValue =
-      medianPriorityValue < 1.5 ? "1.5" : medianPriorityValue.toFixed(2);
-
-    let maxPrioityvalue = Math.max(...optimalPriorityValuesClusters);
-    maxPrioityvalue =
-      maxPrioityvalue < 1.5 ? "1.5" : maxPrioityvalue.toFixed(2);
-
-    console.log("Min Max Value:", minMaxValue);
-    console.log("Median Max Value:", medianMaxValue);
-    console.log("Maximum Max Value:", maxMavalue);
-
-    console.log("min prioity value:", minPriorityValue);
-    console.log("median prioity value:", medianPriorityValue);
-    console.log("maximum prioity value:", maxPrioityvalue);
-
-    console.log(
-      web3.utils.toWei(minMaxValue.toString(), "gwei"),
-      web3.utils.toWei(medianMaxValue.toString(), "gwei"),
-      web3.utils.toWei(maxMavalue.toString(), "gwei"),
-
-      web3.utils.toWei(minPriorityValue.toString(), "gwei"),
-      web3.utils.toWei(medianPriorityValue.toString(), "gwei"),
-      web3.utils.toWei(maxPrioityvalue.toString(), "gwei")
-    );
-    return {
-      minFeePerGas: web3.utils.toWei(minMaxValue.toString(), "gwei"),
-      medianFeePerGas: web3.utils.toWei(medianMaxValue.toString(), "gwei"),
-      maxFeePerGas: web3.utils.toWei(maxMavalue.toString(), "gwei"),
-      minPriorityFee: web3.utils.toWei(minPriorityValue.toString(), "gwei"),
-      medianPriorityFee: web3.utils.toWei(
-        medianPriorityValue.toString(),
-        "gwei"
+    var optimalPriorityValuesClusters = clusterData(
+      filteredPriorityFees.filter(
+        (fee) => fee <= Math.min(...optimalMaxValuesClusters)
       ),
-      maxPriorityFee: web3.utils.toWei(maxPrioityvalue.toString(), "gwei"),
+      3
+    );
+
+    const priorityValues = calculateFeeValues(optimalPriorityValuesClusters);
+    const feePerGasValues = calculateFeeValues(optimalMaxValuesClusters);
+
+    console.log("min prioity value:", priorityValues.min);
+    console.log("median prioity value:", priorityValues.median);
+    console.log("maximum prioity value:", priorityValues.max);
+    console.log("Min Max Value:", feePerGasValues.min);
+    console.log("Median Max Value:", feePerGasValues.median);
+    console.log("Maximum Max Value:", feePerGasValues.max);
+    return {
+      minPriorityFeePerGas: priorityValues.min,
+      medianPriorityFeePerGas: priorityValues.median,
+      maxPriorityFeePerGas: priorityValues.max,
+      minFeePerGas: feePerGasValues.min,
+      medianFeePerGas: feePerGasValues.median,
+      maxFeePerGas: feePerGasValues.max,
     };
   } catch (error) {
-    console.error(`failed to calculate fees: ${error}`);
+    throw new Error(`Failed to calculate fees: ${error}`);
   }
 }
-
-async function useCalculatedFees() {
-  const fees = await calculateFees();
-  console.log(fees.minFeePerGas); // Wei 단위의 최소 가스 가격 출력.
-  console.log(fees.medianFeePerGas); // Wei 단위의 중간 가스 가격 출력.
-  console.log(fees.maxFeePerGas); // Wei 단위의 최대 가스 가격 출력.
-  console.log(fees.minPriorityFee); // Wei 단위의 최소 우선 순위 수수료 출력.
-  console.log(fees.medianPriorityFee); // Wei 단위의 중간 우선 순위 수수료 출력.
-  console.log(fees.maxPriorityFee);
-}
-useCalculatedFees();
 
 module.exports = {
   calculateFees,
