@@ -16,6 +16,12 @@ const contractDB = {};
 contractDB.address_infos = require('./address_info');
 contractDB.contract_infos = require('./contract_info');
 
+const scopeDB = {};
+scopeDB.blocks = require('./tb_blocks');
+scopeDB.transactions = require('./tb_transactions');
+scopeDB.uncles = require('./tb_uncles');
+scopeDB.withdrawals = require('./tb_withdrawals');
+
 const createSequelizeInstance = (dbConfig) => {
 	if (dbConfig.use_env_variable) {
 		return new Sequelize(process.env[config.use_env_variable], dbConfig);
@@ -38,6 +44,7 @@ const sequelizeAccountDB = createSequelizeInstance(config.databases.accountDB);
 const sequelizeContractDB = createSequelizeInstance(
 	config.databases.contractDB
 );
+const sequelizeScopeDB = createSequelizeInstance(config.databases.scopeDB);
 
 Object.keys(accountDB).forEach((modelName) => {
 	const model = accountDB[modelName](sequelizeAccountDB, Sequelize.DataTypes);
@@ -52,6 +59,11 @@ Object.keys(contractDB).forEach((modelName) => {
 	db[modelName] = model;
 });
 
+Object.keys(scopeDB).forEach((modelName) => {
+	const model = scopeDB[modelName](sequelizeScopeDB, Sequelize.DataTypes);
+	db[modelName] = model;
+});
+
 Object.keys(db).forEach((modelName) => {
 	if (db[modelName].associate) {
 		db[modelName].associate(db);
@@ -60,6 +72,7 @@ Object.keys(db).forEach((modelName) => {
 
 db.sequelizeAccountDB = sequelizeAccountDB;
 db.sequelizeContractDB = sequelizeContractDB;
+db.sequelizeScopeDB = sequelizeScopeDB;
 db.Sequelize = Sequelize;
 
 sequelizeAccountDB
@@ -79,6 +92,16 @@ sequelizeContractDB
 	})
 	.catch((err) => {
 		console.error('ContractDB: ', err);
+		return;
+	});
+
+sequelizeScopeDB
+	.sync({ force: false })
+	.then(() => {
+		console.log('ScopeDB: Mysql Database Connect Success!!');
+	})
+	.catch((err) => {
+		console.error('ScopeDB: ', err);
 		return;
 	});
 

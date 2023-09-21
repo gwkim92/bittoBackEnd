@@ -19,6 +19,14 @@ const development = {
 			database: process.env.CONTRACTDB_NAME,
 			dialect: 'mysql',
 		},
+		scopeDB: {
+			host: process.env.SCOPEDB_HOST,
+			port: process.env.SCOPEDB_PORT,
+			username: process.env.SCOPEDB_USERNAME,
+			password: process.env.SCOPEDB_PASSWORD,
+			database: process.env.SCOPEDB_NAME,
+			dialect: 'mysql',
+		},
 	},
 };
 
