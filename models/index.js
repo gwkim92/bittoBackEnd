@@ -21,6 +21,7 @@ scopeDB.blocks = require('./tb_blocks');
 scopeDB.transactions = require('./tb_transactions');
 scopeDB.uncles = require('./tb_uncles');
 scopeDB.withdrawals = require('./tb_withdrawals');
+scopeDB.TxDetailInfo = require('./tb_tx_detail_info');
 
 const createSequelizeInstance = (dbConfig) => {
 	if (dbConfig.use_env_variable) {

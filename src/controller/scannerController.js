@@ -1,7 +1,5 @@
-// const User = require('../models/User');
-// const jwt = require('jsonwebtoken');
 const scopeDB = require('../models/scopeDB');
-// const { sequelize } = require('../../models');
+// TODO: response error code 수정 및 정리
 
 module.exports = {
 	scan: {
@@ -19,13 +17,12 @@ module.exports = {
 			}
 		},
 
-		getBlock: async (req, res) => {},
-
-		getTxList: async (req, res) => {
+		getBlock: async (req, res) => {
 			const chain = req.params.chain;
+			const blockNumber = req.params.number;
 
 			try {
-				const result = await scopeDB.getTransactionsInfo();
+				const result = await scopeDB.getBlockByNumber(blockNumber);
 				return res.json({
 					result: result,
 				});
@@ -34,6 +31,33 @@ module.exports = {
 			}
 		},
 
-		getTx: async (req, res) => {},
+		getTxList: async (req, res) => {
+			// TODO chain 별 scopeDB 에 블록데이터 저장 후 분기
+			const chain = req.params.chain;
+
+			try {
+				const result = await scopeDB.getTransactionsDetailInfo();
+				return res.json({
+					result: result,
+				});
+			} catch (error) {
+				return res.sendStatus(404);
+			}
+		},
+
+		getTx: async (req, res) => {
+			// TODO chain 별 scopeDB 에 블록데이터 저장 후 분기
+			const chain = req.params.chain;
+			const hash = req.params.hash;
+
+			try {
+				const result = await scopeDB.getTransactionInfoByHash(hash);
+				return res.json({
+					result: result,
+				});
+			} catch (error) {
+				return res.sendStatus(404);
+			}
+		},
 	},
 };
