@@ -59,5 +59,6 @@ module.exports = {
 				return res.sendStatus(404);
 			}
 		},
+		// TODO: 검색, block, tx pagenation 추가
 	},
 };
