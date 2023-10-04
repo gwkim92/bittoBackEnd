@@ -55,23 +55,8 @@ function calculateFeeValues(clusteredFees) {
   let minFee = Math.min(...clusteredFees).toFixed(9);
   let medianValue = stats.median(clusteredFees).toFixed(9);
   let maxValue = Math.max(...clusteredFees).toFixed(9);
-  // let minFee = Math.min(...clusteredFees);
-  // let medianValue = stats.median(clusteredFees);
-  // let maxValue = Math.max(...clusteredFees);
 
   console.log("test : ", minFee, medianValue, maxValue);
-
-  // if (
-  //   minFee === "0.000000" &&
-  //   medianValue === "0.000000" &&
-  //   maxValue === "0.000000"
-  // ) {
-  //   return {
-  //     min: "0",
-  //     median: "0",
-  //     max: "0",
-  //   };
-  // }
 
   return {
     min: web3.utils.toWei(minFee, "gwei"),
