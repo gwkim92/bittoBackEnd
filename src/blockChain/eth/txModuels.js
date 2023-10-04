@@ -33,6 +33,13 @@ async function createEIP1559Tx(from, to, value, data) {
   const Nonce = await getNonce(from);
   console.log(Nonce);
   const tx = createTransaction(to, value, data);
+  const maxPriorityToGwei = web3.utils.fromWei(
+    gasFee.medianPriorityFeePerGas,
+    "gwei"
+  );
+  const maxFeeToGwei = web3.utils.fromWei(gasFee.medianFeePerGas, "gwei");
+  console.log("gwei : ", maxPriorityToGwei);
+  console.log("gwei : ", maxFeeToGwei);
   console.log("createTransaction :", tx);
   const gasLimit = await estimateGas(tx);
   console.log("gasLimit : ", gasLimit);
@@ -54,8 +61,8 @@ async function signTransaction(txObject, privateKey) {
 }
 
 ////////////////////////proxy//////////////////////
-async function sendSignedTransaction(signedTxObject) {
-  return await web3.eth.sendSignedTransaction(signedTxObject.rawTransaction);
+async function sendSignedTransaction(rawTransaction) {
+  return await web3.eth.sendSignedTransaction(rawTransaction);
 }
 
 module.exports = {
