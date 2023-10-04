@@ -1,6 +1,4 @@
-// const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-// const userDB = require('../models/userDB');
 const userDB = require('../models/accountDB');
 const { sequelize } = require('../../models');
 
@@ -9,8 +7,6 @@ module.exports = {
 		getUsersInfo: async (req, res) => {
 			try {
 				const result = await userDB.getUserInfo();
-				// TODO log 삭제
-				console.log('result : ', result);
 				return res.json({
 					result: result,
 				});
